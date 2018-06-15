@@ -1,15 +1,15 @@
 # token here
-TOKEN = '419143379:AAFMAMFerBxUajJfsCv_q6GpBFYG4od93DA'
+TOKEN = ''
 BOTNAME = 'BuisnessLessonsBot'
 URL = "https://t.me/"+BOTNAME+'?start='
 LINK = "https://t.me/"+BOTNAME
-PROVIDER_TOKEN = '381764678:TEST:3871'
+PROVIDER_TOKEN = ''
 
 
-WEBHOOK_HOST = '185.159.128.139'                   # Write your host's IP
+WEBHOOK_HOST = ''                   # Write your host's IP
 WEBHOOK_PORT = 443              # 443, 80, 88 or any free port
 WEBHOOK_PORT2 = 88              # 443, 80, 88 or any free port
-WEBHOOK_LISTEN = '185.159.128.139'          # Sometimes may need to write your host's IP again
+WEBHOOK_LISTEN = ''          # Sometimes may need to write your host's IP again
 
 WEBHOOK_SSL_CERTIFICATE = 'webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIVATE_KEY = 'webhook_pkey.pem'  # Path to the ssl private key
@@ -19,5 +19,5 @@ WEBHOOK_URL_PATH = "/%s/" % TOKEN
 WEBHOOK_URL_PATH = "/%s/" % TOKEN
 WEBHOOK_URL_BASE2 = "http://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 
-db_configs = dict(user='postgres', host='localhost', port='5432', password='89/b/3?!MK', database='postgres')
-mongo_configs = dict(host='localhost', port=27017, name='test-database')
+db_configs = dict(user='postgres', host='localhost', port='5432', password='', database='postgres')
+mongo_configs = dict(host='localhost', port=, name='test-database')
