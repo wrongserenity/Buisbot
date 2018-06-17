@@ -9,3 +9,5 @@ Functional:
     - Subscribing \ unsubscribing from courses
     - Ability to rate courses, leave a review
     - Creating new sequences of lessons
+
+January 2018
