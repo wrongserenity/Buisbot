@@ -1,3 +1,7 @@
+"""
+Temporary testing file. Need to add it in gitignore
+"""
+
 from main import bot, gen_string
 from classes import Lesson, Sequence, LessonsPool
 import json
@@ -22,6 +26,7 @@ tree = {
     'Платный?':[False, 'Напишите цену' ]
 }
 
+
 def sequencer(step, seq_id):
     def wrapper(message, step=step, seq_id=seq_id):
         seq = Sequence(*[None for i in range(9)], key_id=seq_id)
@@ -31,8 +36,6 @@ def sequencer(step, seq_id):
             pass
         msg = bot.send_message(message.chat.id, texts[step])
         bot.register_next_step_handler(msg, sequencer(step+1, seq_id))
-
-def lessoner(step, )
 
 sequences = {item[1]: item[0] for item in Sequence.get_links()}
 sequences2 = {item[0]: item[1] for item in Sequence.get_links()}

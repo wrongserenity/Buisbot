@@ -1,6 +1,10 @@
+"""
+Tests of seconday functions with unittest module
+"""
+
 import unittest
 import re
-from mongo import maketime
+
 
 def validate_time(time, day):
     hour , mins = map(int, time.split(':'))

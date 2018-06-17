@@ -1,17 +1,19 @@
+"""
+Copy of main.py with some Telegram Payments handlers added
+"""
+
 import telebot
 from telebot.types import LabeledPrice, ShippingOption
-from configs2 import *
+from configs import *   # should've been configs2 here!
 from texts import *
 from markups import *
 from random import choice
 from string import ascii_letters, digits
 from classes import Sequence, LessonsPool
-import re
 import postgres
 import cherrypy
 from telegram.ext import Updater, Job
 from time import time, ctime
-import urllib.request as urllib
 import json
 from wrappers import wrap_bridge, wrap_lesson, wrap_seq, wrap_feedback, seq_steps, les_steps
 
@@ -111,7 +113,6 @@ class WebhookServer(object):
             return postgres.get_feedback()
         elif table_name == 'seq_table':
             return postgres.get_seq_table()
-
 
 
 

@@ -1,3 +1,27 @@
+"""
+Wrappers.py - set of functions, that wrap the process of sending request, handling response and saving data from user
+Helps to shorten lines of code, but get more complex syntax instead
+
+Consists of:
+    Steps sequences for requesting:
+        - Sequence(Course) data
+        - Lesson's data (each one)
+
+    Sequence(course) request wrapper
+
+    Bridge(transition between course and lesson's part) wrapper
+
+    Lessons wrapper
+
+    Feedback wrapper
+
+
+Each one of wrappers returns function, that will handle new data from "steps",
+which than passes to the next_step_handler() func. as parameter
+
+Todo: Need to rewrite with Builders (classes_new.py)
+"""
+
 from texts import *
 from markups import *
 from classes import Lesson, Sequence
@@ -6,6 +30,7 @@ from time import strftime
 import uuid
 import os
 
+# Sequence of lines
 seq_steps = dict(
     name=[1, 'description'],
     description=[2, 'more'],
@@ -39,7 +64,7 @@ def validate_link(link):
 
 
 def validate_time(time, day):
-    hour , mins = map(int, time.split(':'))
+    hour, mins = map(int, time.split(':'))
     if day <= 0:
         raise Exception('Error occurred : invalid day')
     if hour < 3 and day == 1:
@@ -53,10 +78,7 @@ def validate_time(time, day):
             return ':'.join([hour.rjust(2, '0'), str(mins).rjust(2, '0')]), day
 
 
-
-
-
-
+# return func with passed default parameters
 def wrap_seq(id_, datatype_, steps, bot):
     def updater(message, id_=id_, datatype_=datatype_):
         # print('id_= ', id_)
@@ -107,7 +129,7 @@ def wrap_lesson(seq_id, lesson_id, step, steps, bot):
             seq.lessons.append(Lesson(len(seq.lessons), seq.id_, None, None, message.text, None, None))
             msg = bot.send_message(message.chat.id,
                                    'Теперь, введите номер дня, начиная с дня подписки, на который придется ваш %d урок!' %
-                                   int(lesson_id+1))
+                                   int(lesson_id + 1))
             bot.register_next_step_handler(msg, wrap_lesson(seq_id, lesson_id, 'day', steps, bot))
             seq._update()
             return
@@ -151,7 +173,6 @@ def wrap_lesson(seq_id, lesson_id, step, steps, bot):
             seq.lessons[lesson_id][step] = '%s.%s' % (id_, filetype)
             seq._update()
 
-
         # --------------ERROR HANDLING BLOCK--------------
         else:
 
@@ -160,7 +181,7 @@ def wrap_lesson(seq_id, lesson_id, step, steps, bot):
                 # Checks for matching regular expression
                 if not re.match(reg_expr, message.text):
                     msg = bot.send_message(message.chat.id, 'Неверный формат времени!\n'
-                                                        'Введите время урока согласно примеру: 18:00')
+                                                            'Введите время урока согласно примеру: 18:00')
                     bot.register_next_step_handler(msg, wrap_lesson(seq_id, lesson_id, 'time', steps, bot))
                     return
                 # Checks time for being <= previous days
@@ -209,7 +230,8 @@ def wrap_lesson(seq_id, lesson_id, step, steps, bot):
                 # checks link for being equal
                 # https://www.google.com
                 if not validate_link(message.text):
-                    msg = bot.send_message(message.chat.id, 'Unvalid URL!\nPlease, check the url spelling and write it again')
+                    msg = bot.send_message(message.chat.id,
+                                           'Unvalid URL!\nPlease, check the url spelling and write it again')
                     bot.register_next_step_handler(msg, wrap_lesson(seq_id, lesson_id, 'link', steps, bot))
                     return
             # default
@@ -219,13 +241,16 @@ def wrap_lesson(seq_id, lesson_id, step, steps, bot):
         # needs special because there's no usage of yes/no
         if step == 'day':
             msg = bot.send_message(message.chat.id, 'Теперь, напиши время формата 18:00,'
-                                                    ' на которое придется ваш %d урок!\nВнимание, используется московское время!' % (lesson_id+1))
+                                                    'на которое придется ваш %d урок!\nВнимание, используется '
+                                                    'московское время!' % (
+                                       lesson_id + 1))
             bot.register_next_step_handler(msg, wrap_lesson(seq_id, lesson_id, 'time', steps, bot))
             return
 
         # default
         bot.send_message(message.chat.id, lessons_texts[steps.get(step)[0]],
                          reply_markup=yes_no(seq_id, steps.get(step)[1], lesson_id))
+
     return updater
 
 

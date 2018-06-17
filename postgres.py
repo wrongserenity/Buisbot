@@ -1,3 +1,7 @@
+"""
+Postgres.py - file with PostgreSQL Database interactions funcs
+"""
+
 import psycopg2
 from simplejson import loads, dumps
 from configs import db_configs

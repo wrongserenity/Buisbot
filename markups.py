@@ -1,6 +1,10 @@
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+"""
+markups.py - markup generator funcs definitions
 
-#import postgres
+Todo: #
+"""
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def main_markup():
@@ -21,6 +25,7 @@ def lesson_markup(seq_id, lesson_id):
         markup.add(but2)
     return markup
 """
+
 
 def catalog(data, last_=None):
     markup = InlineKeyboardMarkup(row_width=1)

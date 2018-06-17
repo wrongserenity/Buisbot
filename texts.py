@@ -1,4 +1,6 @@
-import simplejson as json
+"""
+Just text constants
+"""
 
 start_text = 'Welcome!'
 

@@ -1,15 +1,13 @@
+"""
+Mongo.py - file with MongoDB interactions funcs
+"""
+
 import pymongo as mongo
 import time
 from configs import mongo_configs
 
 client = mongo.MongoClient(mongo_configs['host'], mongo_configs['port'])
 db = client[mongo_configs['name']]
-
-"""
-db.lessons_pool.save(dict(time=16323424.5, text='This is second lesson of doing nothing!\n'
-                                             'Nice to see you againg, and today we are going to do...\nNOTHING!!',
-                          users=[2522626, 3623623, 2452325, 3636363], seq_id=56, lesson_id=2))
-"""
 
 
 def maketime(time_, diff):
@@ -39,6 +37,7 @@ def add_lesson(lesson,  user_id, diff):
         lesson['users'] = [user_id]
         db.lessons_pool.insert(lesson)
     return lesson['time']
+
 
 def remove_lessons(lessons):
     for lesson in lessons:

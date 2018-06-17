@@ -1,8 +1,7 @@
-import time
-print(time.ctime(time.time()))
-
-
 """
+PaU API classes realizations
+"""
+
 import requests
 import datetime
 import hmac
@@ -16,7 +15,6 @@ class SignatureBuilder(object):
         self.s = ''
 
     def add(self, val, key=None):
-        val = unicode(val)
         if val is not None:
             self.s += '%d%s' % (len(val), val)
             #print '%s=%r' % (key, val)
@@ -229,6 +227,4 @@ class PayUOrder(object):
 
 
 if __name__ == '__main__':
-    import test
-
-"""
+    pass

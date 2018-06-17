@@ -1,3 +1,14 @@
+"""
+Main Executable File
+
+Consists of:
+    telegram.ext Job
+    CherryPy Web Server
+    Bunch of pyTelegramBotAPI handlers
+    CherryPy configure block & Webhook setter
+
+"""
+
 import telebot
 from configs import *
 from texts import *
@@ -5,7 +16,6 @@ from markups import *
 from random import choice
 from string import ascii_letters, digits
 from classes import Sequence, LessonsPool
-import re
 import postgres
 import cherrypy
 from telegram.ext import Updater, Job
@@ -13,11 +23,9 @@ from time import time, ctime
 import json
 from wrappers import wrap_bridge, wrap_lesson, wrap_seq, wrap_feedback, seq_steps, les_steps
 
-
 bot = telebot.TeleBot(TOKEN)
 sequences = {item[1]: item[0] for item in Sequence.get_links()}
 sequences2 = {item[0]: item[1] for item in Sequence.get_links()}
-
 
 # working with pool
 pool = LessonsPool()
@@ -26,22 +34,26 @@ upd = Updater(TOKEN)
 queue = upd.job_queue
 
 
+# Simple function, that calls LessonsPool's pop_lessons() method to check for new lessons to send
+# Then is put in telegram.ext Job with 60-second interval
 def process(upd, job):
     # should return dicts!!!
-    print('checking...', ctime(time()))
+    # print('checking...', ctime(time()))
     lessons = pool.pop_lessons()
     if lessons:
         for lesson in lessons:
             seq = Sequence(*[None for i in range(9)], key_id=lesson['_seq_id_'])
             for user_id in lesson['users']:
-                bot.send_message(user_id, lesson['data'], reply_markup=les_markup(lesson['link'], lesson['more'], lesson['_id_'], lesson['_seq_id_']))
+                bot.send_message(user_id, lesson['data'],
+                                 reply_markup=les_markup(lesson['link'], lesson['more'], lesson['_id_'],
+                                                         lesson['_seq_id_']))
                 if lesson['photo']:
                     with open('photos/%s' % lesson['photo'], 'rb') as photo:
                         bot.send_photo(user_id, photo)
                 if lesson['document']:
                     with open('documents/%s' % lesson['document'], 'rb') as document:
                         bot.send_document(user_id, document)
-                if len(seq.lessons) == lesson['_id_']+1:
+                if len(seq.lessons) == lesson['_id_'] + 1:
                     bot.send_message(user_id, seq.finish_message)
                 else:
                     seq.next(lesson['_id_'], user_id)
@@ -52,20 +64,25 @@ queue.put(Job(process, interval=60), 0)
 queue.start()
 
 
-
+# transitional funcs
 def find_key(d, value):
     return [k for k, v in d.items() if v == value]
+
+
 def gen_string():
     string = ''.join(choice(ascii_letters + digits) for i in range(5))
     if string in sequences.keys():
         return gen_string()
     return string
+
+
 def get_unique_seq(user_id):
     global pool
     return [seq for seq in postgres.get_sequences() if seq['id_'] not in pool.get_subscribes(user_id)]
 
 
-# Cherrypy calls handler
+# CherryPy server
+# Commented: support of outer Admin Panels
 class WebhookServer(object):
     @cherrypy.expose
     def index(self):
@@ -80,10 +97,10 @@ class WebhookServer(object):
         else:
             raise cherrypy.HTTPError(403)
 
+    """
     @cherrypy.expose
     def stop(self):
-        print('!!!!')
-        return '<h1>Here<h1>'
+        pass
 
     @cherrypy.expose
     def get_tables(self):
@@ -102,6 +119,7 @@ class WebhookServer(object):
             return postgres.get_feedback()
         elif table_name == 'seq_table':
             return postgres.get_sequences()
+    """
 
 
 @bot.message_handler(commands=['start'])
@@ -121,6 +139,8 @@ def handle_start(message):
         pass
     else:
         bot.send_message(message.chat.id, menu_text, reply_markup=main_markup())
+
+
 @bot.message_handler(commands=['create'])
 def handle_new(message):
     id_ = Sequence.create()
@@ -133,32 +153,44 @@ def handle_new(message):
         file.write(json.dumps(sequences))
     msg = bot.send_message(message.chat.id, creation_text)
     bot.register_next_step_handler(msg, wrap_seq(id_, 'name', seq_steps, bot))
+
+
 @bot.message_handler(commands=['copyright'])
 def handle_copyright(message):
     bot.send_message(message.chat.id, 'Designed and developed by LampusIT(www.lampus-it.com)\n©LampusIT, 2017')
+
+
 @bot.message_handler(commands=['menu'])
 def handle_menu(message):
     bot.send_message(message.chat.id, menu_text, reply_markup=main_markup())
+
+
 @bot.message_handler(commands=['help'])
 def handle_help(message):
     bot.send_message(message.chat.id, help_text)
+
+
 @bot.message_handler(commands=['link'])
 def handle_help(message):
-    bot.send_message(message.chat.id, LINK+'\nСпасибо, что помогаете привлечь новых пользователей!'
-                                           'Больше людей - больше действительно стоящих курсов')
+    bot.send_message(message.chat.id, LINK + '\nСпасибо, что помогаете привлечь новых пользователей!'
+                                             'Больше людей - больше действительно стоящих курсов')
 
 
+# "My subscribes" handler
 @bot.callback_query_handler(func=lambda call: call.data == 'my')
 def handle_my(call):
     subscribes = pool.get_subscribes(call.message.chat.id)
     subscribes = [Sequence(*[None for i in range(9)], key_id=int(sub)) for sub in subscribes]
     if not subscribes:
-        bot.edit_message_text('Вы ещё не подписаны ни на один курс!\n\n'+menu_text, chat_id=call.message.chat.id, message_id=call.message.message_id,
-                          reply_markup=main_markup())
+        bot.edit_message_text('Вы ещё не подписаны ни на один курс!\n\n' + menu_text, chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              reply_markup=main_markup())
         return
     bot.edit_message_text('Cписок ваших подписок - нажмите на соовтетствующие кнопки чтобы отписаться',
                           chat_id=call.message.chat.id, message_id=call.message.message_id,
                           reply_markup=unsub(subscribes))
+
+
 @bot.callback_query_handler(func=lambda call: call.data == 'catalog')
 def handle_catalog(call):
     data = get_unique_seq(call.message.chat.id)
@@ -167,17 +199,23 @@ def handle_catalog(call):
         bot.edit_message_text(chat_id=call.message.chat.id, text='Нет доступных курсов!',
                               message_id=call.message.message_id)
     bot.send_message(call.message.chat.id, '\n'.join(list(cat[0])), reply_markup=cat[1])
+
+
 @bot.callback_query_handler(func=lambda call: call.data == 'contacts')
 def handle_contacts(call):
     bot.send_message(call.message.chat.id, 'Наши контакты \n\nКоманда разработчиков:'
                                            '\n\t - \tНикита @lampuscode (баг-репорты сюда)'
                                            '\n\n\tВладелец бота, автор идеи и админ проекта:'
                                            '\n\t - \tАлексей @AfkParty (отзывы и пожелания)')
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('nextpage'))
 def handle_next_page(call):
     data = get_unique_seq(call.message.chat.id)
     bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id,
                                   reply_markup=catalog(data, int(call.data.split('/')[1]))[1])
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('newlesson'))
 def handle_lesson_request(call):
     splitted = call.data.split('/')
@@ -188,6 +226,7 @@ def handle_lesson_request(call):
         bot.send_message(call.message.chat.id,
                          'Отлично, курс создан! Вы можете пройти его по ссылке '
                          + URL + str(sequences2[int(splitted[2])]))
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('price'))
 def handle_ask_price(call):
@@ -201,6 +240,8 @@ def handle_ask_price(call):
         bot.send_message(call.message.chat.id,
                          'Вы хотите создать урок номер 1?',
                          reply_markup=yes_no(seq.id_, 'newlesson', 0))
+
+
 #
 # TODO(Nick)
 # Write bridges for photo and document handling
@@ -235,13 +276,16 @@ def handle_request2(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('unsub'))
 def handle_unsub(call):
-
-
     pool.delete_from(call.message.chat.id, int(call.data.split('/')[1]))
-    subscribes = [Sequence(*[None for i in range(9)], key_id=int(sub)) for sub in pool.get_subscribes(call.message.chat.id)]
+    subscribes = [Sequence(*[None for i in range(9)], key_id=int(sub)) for sub in
+                  pool.get_subscribes(call.message.chat.id)]
     bot.edit_message_text(chat_id=call.message.chat.id,
                           text='Вы успешно отписались! Как бы вы смогли оценить этот курс?',
                           message_id=call.message.message_id, reply_markup=stars(int(call.data.split('/')[1])))
+
+
+# Wrappers Section:
+# Functions maintained by wrappers.py module
 @bot.callback_query_handler(func=lambda call: call.data.startswith('link'))
 def handle_request2(call):
     splitted = call.data.split('/')
@@ -253,6 +297,8 @@ def handle_request2(call):
         bot.send_message(call.message.chat.id, "Хорошо! Добавить кнопку \"Подробнее\"?",
                          reply_markup=yes_no(int(splitted[2]), 'more', int(splitted[3]))
                          )
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('day'))
 def handle_request3(call):
     splitted = call.data.split('/')
@@ -260,6 +306,8 @@ def handle_request3(call):
         msg = bot.send_message(call.message.chat.id, 'Теперь, напишите мне ссылку,'
                                                      ' которая долна быть прикреплена к вашему уроку')
         bot.register_next_step_handler(msg, wrap_lesson(int(splitted[2]), int(splitted[3]), 'link', les_steps))
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('more'))
 def handle_request4(call):
     splitted = call.data.split('/')
@@ -271,7 +319,10 @@ def handle_request4(call):
     else:
         seq = Sequence(*[None for i in range(9)], key_id=int(splitted[2]))
         bot.send_message(call.message.chat.id, 'Отлично! Вы только что успешно создали новый урок!\n Создать ещё один?',
-                         reply_markup=yes_no(int(splitted[2]), 'newlesson', len(seq.lessons) if seq.lessons else 0 ))
+                         reply_markup=yes_no(int(splitted[2]), 'newlesson', len(seq.lessons) if seq.lessons else 0))
+# End of Wrappers section
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('stars'))
 def handle_stars(call):
     data = call.data.split('/')
@@ -281,6 +332,8 @@ def handle_stars(call):
                                            'Обратная связь очень важна для нас, '
                                            'ваши отзывы помогут нам сделать ресурс лучше.',
                      reply_markup=yes_no(seq.id_, 'commentary'))
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('commentary'))
 def handle_is_comment(call):
     data = call.data.split('/')
@@ -288,7 +341,9 @@ def handle_is_comment(call):
         msg = bot.send_message(call.message.chat.id, 'Хорошо! Введите комментарий ниже')
         bot.register_next_step_handler(msg, wrap_feedback(bot, int(data[2])))
     else:
-        bot.send_message(call.message.chat.id, 'Спасибо за оценку!\n'+menu_text, reply_markup=main_markup())
+        bot.send_message(call.message.chat.id, 'Спасибо за оценку!\n' + menu_text, reply_markup=main_markup())
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('skipstars'))
 def skip_stars(call):
     bot.edit_message_text('Вы успешно завершили курс!\n%s' % start_text, chat_id=call.message.chat.id,
@@ -313,6 +368,8 @@ def subscribe(call):
     seq = Sequence(*[None for i in range(9)], key_id=sequences.get(key))
     bot.send_message(call.message.chat.id, seq.start_message, reply_markup=start_markup(seq))
     seq.start(call.message.chat.id)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('info'))
 def handle_infos(call):
     data = call.data.split('/')
@@ -325,6 +382,7 @@ def handle_infos(call):
                               message_id=call.message.id)
 
 
+# CherryPy settings with self-signed certificate support
 try:
     bot.remove_webhook()
 

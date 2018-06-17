@@ -1,9 +1,17 @@
+"""
+Updated version of classes.py
+
+Added some base classes, wide usage of inheritance planned
+
+Todo: Create LessonsBuilder & define msanagers
+"""
+
 import time
 from math import fabs
 from markups import choice_marup
 import mongo
+import postgres
 
-# import postgres
 
 format = "%H:%M"
 
@@ -198,21 +206,6 @@ class Sequence:
         return True
 
 
-"""
-class User:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.subscribes = postgres.get_sequence(user_id)
-        self.subscribes = self.subscribes if self.subscribes else 0
-
-    def new_subscribe(self):
-        postgres.add_subscribes(self.user_id, 1)
-
-    def unsubscribe(self):
-        postgres.add_subscribes(self.user_id, -1)
-"""
-
-
 # только как интерфейс для хранения lesson'ов
 class LessonsPool:
     def __init__(self):
@@ -270,28 +263,3 @@ class LessonsPool:
                     mongo.upd_lesson(lesson['time'], lesson['_seq_id_'], lesson['_id_'], lesson['users'])
                 else:
                     raise Exception('Fatal Error occurred\nIncorrect user_id')
-
-    """
-    def comparator(self, time, lesson):
-        if self.time_comparator(time, lesson):
-            if time > lesson.time:
-                return 1
-            elif time < lesson.time:
-                return -1
-            else:
-                return 0
-        elif time > lesson.time():
-            return 2
-        else:
-            return -2
-
-
-    def binsearch(self, list_, value):
-        i = 0
-        j = len(list_) - 1
-        while i < j:
-            index = int((j+1)/2)
-            if self.comparator(value, list_[index]) == 0:
-                pass
-
-    """

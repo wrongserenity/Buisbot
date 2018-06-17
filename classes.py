@@ -1,8 +1,13 @@
+"""
+Default file with class definitions
+Names of functions describes behavior, no need in comments
+"""
+
 import time
 from math import fabs
-
 import mongo
 import postgres
+
 
 format = "%H:%M"
 
@@ -76,8 +81,8 @@ class Sequence:
 
     def next(self, lesson_id, user_id):
         day = int(self.lessons[lesson_id]['day'])
-        nday = int(self.lessons[lesson_id+1]['day'])
-        if nday-day < 0:
+        nday = int(self.lessons[lesson_id + 1]['day'])
+        if nday - day < 0:
             raise Exception('Fatal error occurred.\nWrong day identification!')
         mongo.add_lesson(self.lessons[lesson_id + 1], user_id, nday - day)
 
@@ -110,20 +115,6 @@ class Sequence:
             if tm > time_:
                 return False
         return True
-
-"""
-class User:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.subscribes = postgres.get_sequence(user_id)
-        self.subscribes = self.subscribes if self.subscribes else 0
-
-    def new_subscribe(self):
-        postgres.add_subscribes(self.user_id, 1)
-
-    def unsubscribe(self):
-        postgres.add_subscribes(self.user_id, -1)
-"""
 
 
 # только как интерфейс для хранения lesson'ов
@@ -166,7 +157,7 @@ class LessonsPool:
             raise Exception('Type Error Occured.\nUnsupported type %s in LessonsPool.push_lesson()' % str(type(lesson)))
 
     def add_user(self):
-       self.reload()
+        self.reload()
 
     def get_subscribes(self, user_id):
         self.reload()
@@ -184,48 +175,3 @@ class LessonsPool:
                     mongo.upd_lesson(lesson['time'], lesson['_seq_id_'], lesson['_id_'], lesson['users'])
                 else:
                     raise Exception('Fatal Error occurred\nIncorrect user_id')
-
-
-
-
-
-
-
-
-
-    """
-    def comparator(self, time, lesson):
-        if self.time_comparator(time, lesson):
-            if time > lesson.time:
-                return 1
-            elif time < lesson.time:
-                return -1
-            else:
-                return 0
-        elif time > lesson.time():
-            return 2
-        else:
-            return -2
-
-
-    def binsearch(self, list_, value):
-        i = 0
-        j = len(list_) - 1
-        while i < j:
-            index = int((j+1)/2)
-            if self.comparator(value, list_[index]) == 0:
-                pass
-
-    """
-
-
-
-
-
-
-
-
-
-
-
-
