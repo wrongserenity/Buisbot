@@ -1,8 +1,8 @@
 # Lessons Bot - simple Telegram Course Manager
 
-## Purpose: creating and passing another_user-created courses
+### Purpose: creating and passing another_user-created courses
 
-## Courses consist of set of lessons, which will be sent to subscribes according to certain schedule
+### Courses consist of set of lessons, which will be sent to subscribes according to certain schedule
 
 # Based on:
 - `CherryPy WebServer + Webhook`
@@ -13,9 +13,9 @@
 
 # Functional:
 
-    - `Browsing a huge variety of courses, sorted by their rating`    
-    - `Subscribing \ unsubscribing from courses`        
-    - `Ability to rate courses, leave a review`    
-    - `Creating new sequences of lessons`
+- `Browsing a huge variety of courses, sorted by their rating`    
+- `Subscribing \ unsubscribing from courses`        
+- `Ability to rate courses, leave a review`    
+- `Creating new sequences of lessons`
 
-# Created: January 2018
+### Created: January 2018
