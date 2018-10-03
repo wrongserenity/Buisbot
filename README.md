@@ -2,7 +2,7 @@
 
 ### Purpose: creating and passing another_user-created courses
 
-### Courses consist of set of lessons, which will be sent to subscribes according to certain schedule
+### Courses consist of set of lessons, which will be sent to subscribes according to a certain schedule
 
 # Based on:
 - `CherryPy WebServer + Webhook`
